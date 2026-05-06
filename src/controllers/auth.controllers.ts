@@ -1,6 +1,6 @@
 import {Request, Response} from 'express';
 import bcrypt from "bcrypt";
-import { db } from "../config/db";
+import { db } from "../config/db.js";
 
 
 
