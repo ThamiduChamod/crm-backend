@@ -3,6 +3,12 @@ import bcrypt from "bcrypt";
 import { db } from "../config/db.js";
 import { signInAccessToken, signInRefreshToken } from '../util/token.js';
 import { AuthRequest } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
 
 
@@ -96,6 +102,30 @@ export const login = async (req: Request, res: Response) => {
         return;
     }
 
+}
+
+export const handleRefreshToken = async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+        return res.status(400).json({ message: "Refresh token is required" });
+    }
+    try {
+        const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+        const user = await db.user.findUnique({
+            where: { id: (payload as any).sub }
+        });
+        if (!user) {
+            return res.status(401).json({ message: "Invalid refresh token" });
+        }
+        const newAccessToken = signInAccessToken(user);
+        res.status(200).json({
+            accessToken: newAccessToken
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(401).json({ message: "Invalid refresh token" });
+        return;
+    }
 }
 
 export const getMyDetails = async (req: AuthRequest, res: Response) => {
