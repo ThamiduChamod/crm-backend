@@ -103,9 +103,9 @@ export const getMyDetails = async (req: AuthRequest, res: Response) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
-
+    const userId = parseInt(req.user.sub);
     const user = await db.user.findUnique({
-        where: { id: req.user.sub }
+        where: { id: userId }
     });
 
     if (!user) {
@@ -116,6 +116,7 @@ export const getMyDetails = async (req: AuthRequest, res: Response) => {
     
     res.status(200).json({
         message: "User details retrieved successfully",
+        role: user.role,
         data: {name, email, role}
     });
 }
