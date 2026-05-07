@@ -53,16 +53,16 @@ export const register = async (req: Request, res: Response) => {
 }
 
 export const login = async (req: Request, res: Response) => {
-    const {username, password} = req.body;
-
+    const {email, password} = req.body;
+    console.log(email);
     try {
-        if (!username || !password) {
-            res.status(400).json({ message: "Username and password are required" });
+        if (!email || !password) {
+            res.status(400).json({ message: "Email and password are required" });
             return;
         }
 
         const user = await db.user.findUnique({
-            where:{email: username}
+            where:{email}
         })
 
         if (!user){
@@ -96,3 +96,4 @@ export const login = async (req: Request, res: Response) => {
     }
 
 }
+
