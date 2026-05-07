@@ -46,3 +46,17 @@ export const saveLeader = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: "Server error" });
     }
 }
+
+export const getAll = async (req: AuthRequest, res: Response) => {
+    if(!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+        const leaders = await db.leader.findMany();
+        console.log(leaders);
+        res.status(200).json({data: { leaders } });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+}
