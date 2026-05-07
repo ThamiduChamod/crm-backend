@@ -60,3 +60,23 @@ export const getAll = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: "Server error" });
     }
 }
+
+export const getLeaderDetails = async (req: AuthRequest, res: Response) => {
+    if(!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+        const leader = await db.leader.findUnique({
+            where: {
+                id: Number(req.params.id)
+            }
+        });
+        if(!leader) {
+            return res.status(404).json({ message: "Leader not found" });
+        }
+        res.status(200).json({data: { leader } });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+}
