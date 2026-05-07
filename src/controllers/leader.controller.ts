@@ -80,3 +80,28 @@ export const getLeaderDetails = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: "Server error" });
     }
 }
+
+export const deleteLeader = async (req: AuthRequest, res: Response) => {
+    if(!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+        const leader = await db.leader.findUnique({
+            where: {
+                id: Number(req.params.id)
+            }
+        });
+        if(!leader) {
+            return res.status(404).json({ message: "Leader not found" });
+        }
+        await db.leader.delete({
+            where: {
+                id: Number(req.params.id)
+            }
+        });
+        res.status(200).json({ message: "Leader deleted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+}
