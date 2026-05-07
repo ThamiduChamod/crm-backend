@@ -2,6 +2,7 @@ import {Request, Response} from 'express';
 import bcrypt from "bcrypt";
 import { db } from "../config/db.js";
 import { signInAccessToken, signInRefreshToken } from '../util/token.js';
+import { AuthRequest } from '../middleware/auth.js';
 
 
 
@@ -97,3 +98,24 @@ export const login = async (req: Request, res: Response) => {
 
 }
 
+export const getMyDetails = async (req: AuthRequest, res: Response) => {
+    
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const user = await db.user.findUnique({
+        where: { id: req.user.sub }
+    });
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    const {name, email, role} = user;
+    
+    res.status(200).json({
+        message: "User details retrieved successfully",
+        data: {name, email, role}
+    });
+}
