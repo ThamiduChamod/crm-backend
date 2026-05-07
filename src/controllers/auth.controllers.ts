@@ -1,6 +1,7 @@
 import {Request, Response} from 'express';
 import bcrypt from "bcrypt";
 import { db } from "../config/db.js";
+import { signInAccessToken, signInRefreshToken } from '../util/token.js';
 
 
 
@@ -14,7 +15,9 @@ export const register = async (req: Request, res: Response) => {
         })
 
         if (existingUser){
+            console.log("User already exists with email:", email);
             res.status(400).json({message: "User already exists"})
+            return;
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
@@ -27,9 +30,17 @@ export const register = async (req: Request, res: Response) => {
             }
         })
 
-        res.status(201).json({
-            message: "User Create successfully",
-            user: newUser
+        const accessToken = signInAccessToken(newUser);
+        const refreshToken = signInRefreshToken(newUser);
+        res.status(200).json({
+            login: true,
+            message: "Register successfully",
+            data: {
+                accessToken,
+                refreshToken,
+                email: newUser.email,
+                role: newUser.role
+            }
         })
     } catch (error) {
         console.error(error);
@@ -44,10 +55,44 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     const {username, password} = req.body;
 
-    // Here you would typically check the username and password against your database
-    if (username === 'admin' && password === 'password') {
-        res.json({message: 'Login successful', token: 'fake-jwt-token'});
-    } else {
-        res.status(401).json({message: 'Invalid credentials'});
+    try {
+        if (!username || !password) {
+            res.status(400).json({ message: "Username and password are required" });
+            return;
+        }
+
+        const user = await db.user.findUnique({
+            where:{email: username}
+        })
+
+        if (!user){
+            res.status(401).json({message: "Invalid credentials"})
+            return;
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password)
+
+        if (!isPasswordValid){
+            res.status(401).json({message: "Invalid credentials"})
+            return;
+        }
+
+        const accessToken = signInAccessToken(user);
+        const refreshToken = signInRefreshToken(user);
+        res.status(200).json({
+            login: true,
+            message: "Login successfully",
+            data: {
+                accessToken,
+                refreshToken,
+                email: user.email,
+                role: user.role
+            }
+        })
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+        return;
     }
+
 }
