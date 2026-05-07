@@ -18,10 +18,58 @@ enum Role {
   ADMIN
 }
 
+// 1. User Model (Salesperson/Admin)
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
-  role     Role   @default(USER)
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role   @default(USER)
+  leads     Leader[]   // One-to-Many: එක් පිරිසකට leads බොහෝමයක් සිටිය හැක
+  notes     Note[]   // One-to-Many: එක් පිරිසකට notes බොහෝමයක් ලියන්න පුළුවන්
+  createdAt DateTime @default(now())
+}
+
+// 2. Lead Model 
+model Leader {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  company             String
+  email               String   @unique
+  phone               String?
+  source              String   // Website, LinkedIn, Referral, etc.
+  status              Status   @default(NEW)
+  dealValue           Decimal  @default(0.00) @db.Decimal(10, 2)
+  
+  // Relationships
+  assignedUserId      Int
+  assignedUser        User     @relation(fields: [assignedUserId], references: [id])
+  notes               Note[]   // One-to-Many: එක් ලීඩ් කෙනෙකුට නෝට්ස් කිහිපයක් තිබිය හැක
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// 3. Note Model 
+model Note {
+  id          Int      @id @default(autoincrement())
+  content     String   @db.Text
+  
+  // Relationships
+  leadId      Int
+  lead        Leader     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
+
+// 4. Enums 
+enum Status {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  WON
+  LOST
 }
