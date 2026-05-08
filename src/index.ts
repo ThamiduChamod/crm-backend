@@ -5,6 +5,7 @@ import { execSync } from "child_process";
 import authRouter from "./routes/auth.routes.js";
 import leaderRouter from "./routes/leader.routes.js";
 import noteRouter from "./routes/note.routes.js";
+import activityRouter from "./routes/activity.routs.js";
 import { createDB, db } from "./config/db.js";
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(cors({
 app.use("/api/auth", authRouter);
 app.use("/api/leader", leaderRouter);
 app.use("/api/note", noteRouter);
+app.use("/api/activity", activityRouter);
 
 console.log("Starting server...");
 
